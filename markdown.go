@@ -3,8 +3,9 @@ package gor
 import (
 	//"bytes"
 	// "github.com/knieriem/markdown"
-	. "github.com/russross/blackfriday"
-	//. "github.com/wendal/blackfriday"
+	// . "github.com/russross/blackfriday"
+	// . "github.com/wendal/blackfriday"
+	. "github.com/wheelcomplex/blackfriday"
 	"log"
 	"regexp"
 	"strings"
