@@ -71,8 +71,8 @@ Why reinvent a wheel? gor has following awesome benefits:
 ====================
 To install:
 
-    go get -u github.com/wendal/gor
-    go install github.com/wendal/gor/gor
+    go get -u github.com/wheelcomplex/gor
+    go install github.com/wheelcomplex/gor/gor
 
 If you use [brew](https://github.com/mxcl/homebrew) on Mac, and you didn't set `$GOROOT` and `$GOPATH` environment variable
 Please using this command:
@@ -156,8 +156,8 @@ You can deploy it to [GitHub Pages](http://pages.github.com/), or put it to your
 ====================
 To install:
 
-    go get -u github.com/wendal/gor
-    go install github.com/wendal/gor/gor
+    go get -u github.com/wheelcomplex/gor
+    go install github.com/wheelcomplex/gor/gor
 
 **在 Mac下使用 brew 的用户**
 

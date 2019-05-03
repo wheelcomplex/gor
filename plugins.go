@@ -152,5 +152,5 @@ func (*JekyllOff) Exec(topCtx mustache.Context) {
 		return
 	}
 	defer f.Close()
-	f.WriteString("Gor Here. http://github.com/wendal/gor")
+	f.WriteString("Gor Here. http://github.com/wheelcomplex/gor")
 }

@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/howeyc/fsnotify"
-	"github.com/wendal/gor"
+	"github.com/wheelcomplex/gor"
 	"io/ioutil"
 	"log"
 	"net/http"
