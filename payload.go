@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/wendal/mustache"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,18 +13,27 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/wendal/mustache"
+)
+
+var (
+	POST_NAME_DATE_RE, _ = regexp.Compile("^[0-9]{4}-[0-9]{2}-[0-9]{2}.+$")
 )
 
 // 构建PayLoad
-func BuildPlayload(root string) (payload map[string]interface{}, err error) {
+func BuildPayload(root string) (payload map[string]interface{}, err error) {
 	//检查处理的根路径
 	if root == "" {
 		root = "."
 	}
 	root, err = filepath.Abs(root)
-	root += "/"
+	if !strings.HasSuffix(root, "/") && !strings.HasSuffix(root, "\\") {
+		root += "/"
+	}
 	log.Println("root=", root)
 
 	// 开始读取配置
@@ -70,6 +78,7 @@ func BuildPlayload(root string) (payload map[string]interface{}, err error) {
 		return
 	}
 	cnf["production_url"] = production_url
+	cnf["production_url_base"] = production_url
 
 	// 域名保证是http/https开头,故,以下的除了,可以按https
 	rootUrl := production_url
@@ -82,6 +91,7 @@ func BuildPlayload(root string) (payload map[string]interface{}, err error) {
 		if !strings.HasSuffix(basePath, "/") {
 			basePath += "/"
 		}
+		cnf["production_url_base"] = rootUrl[:len("https://")+pos]
 	}
 
 	// 读取theme的配置
@@ -188,11 +198,11 @@ func BuildPlayload(root string) (payload map[string]interface{}, err error) {
 		page_url := ""
 		switch {
 		case strings.HasSuffix(page_id, "index.html"):
-			page_url = page_id[0 : len(page_id)-len("index.html")]
+			page_url = page_id[0: len(page_id)-len("index.html")]
 		case strings.HasSuffix(page_id, "index.md"):
-			page_url = page_id[0 : len(page_id)-len("index.md")]
+			page_url = page_id[0: len(page_id)-len("index.md")]
 		default:
-			page_url = page_id[0 : len(page_id)-len(filepath.Ext(page_id))]
+			page_url = page_id[0: len(page_id)-len(filepath.Ext(page_id))]
 			if page["title"] == nil && !strings.HasSuffix(page_url, "/") {
 				page["title"] = strings.Title(filepath.Base(page_url))
 			}
@@ -373,7 +383,7 @@ func LoadPosts(root string, exclude string) (posts map[string]Mapper, err error)
 		if _exclude != nil && _exclude.Match([]byte(path[len(root+"posts/"):])) {
 			return nil
 		}
-		post, err := LoadPost(root, path)
+		post, err := LoadPost(root, path, info.Name())
 		if err != nil {
 			return err
 		}
@@ -384,23 +394,27 @@ func LoadPosts(root string, exclude string) (posts map[string]Mapper, err error)
 }
 
 // 载入特定的Post
-func LoadPost(root string, path string) (ctx Mapper, err error) {
+func LoadPost(root string, path string, fname string) (ctx Mapper, err error) {
 	ctx, err = ReadMuPage(path)
 	if err != nil {
 		return
 	}
 	if ctx["date"] == nil {
-		err = errors.New("Miss date! >> " + path)
-		return
+		if !POST_NAME_DATE_RE.Match([]byte(fname)) {
+			err = errors.New("Miss date! >> " + path)
+			return
+		}
+		ctx["date"] = fname[:10]
 	}
 	if ctx["title"] == "" {
+
 		err = errors.New("Miss title! >> " + path)
 		return
 	}
 	var date time.Time
-	date, err = time.Parse("2006-01-02", ctx["date"].(string))
+	date, err = time.ParseInLocation("2006-01-02", ctx["date"].(string), time.Local)
 	if err != nil {
-		date2, err2 := time.Parse("2006-01-02 15:04:05", ctx["date"].(string))
+		date2, err2 := time.ParseInLocation("2006-01-02 15:04:05", ctx["date"].(string), time.Local)
 		if err2 != nil {
 			err = errors.New("BAD date >>" + path + " " + err.Error() + " " + err2.Error())
 			return
@@ -527,7 +541,13 @@ func DecodePathInfo(pathinfo string) string {
 
 // 创建permalink的配置生产路径(不限于Post)
 func CreatePostURL(db map[string]interface{}, basePath string, post map[string]interface{}) {
-	url := post["permalink"].(string)
+	var url string
+	switch post["permalink"].(type) {
+	case int64:
+		url = strconv.FormatInt(post["permalink"].(int64), 10)
+	default:
+		url = post["permalink"].(string)
+	}
 	if strings.Contains(url, ":") {
 		year, month, day := post["_date"].(time.Time).Date()
 		url = strings.Replace(url, ":year", fmt.Sprintf("%v", year), -1)
@@ -634,7 +654,7 @@ func LoadLayouts(root string, theme string) map[string]Mapper {
 			}
 			layout["_content"] = &DocContent{"", "", tpl}
 		}
-		layoutName := filename[0 : len(filename)-len(filepath.Ext(filename))]
+		layoutName := filename[0: len(filename)-len(filepath.Ext(filename))]
 		layouts[layoutName] = layout
 		log.Println("Load Layout : " + layoutName)
 		return nil

@@ -3,10 +3,11 @@ package gor
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/wendal/mustache"
 	"log"
 	"os"
 	"time"
+
+	"github.com/wendal/mustache"
 )
 
 // 全局插件列表
@@ -52,13 +53,15 @@ func (*RssPlugin) Exec(topCtx mustache.Context) {
 	base_path := FromCtx(topCtx, "urls.base_path").(string)
 	title := FromCtx(topCtx, "site.title").(string)
 	production_url := FromCtx(topCtx, "site.config.production_url").(string)
+	production_url_base := FromCtx(topCtx, "site.config.production_url_base").(string)
+
 	pubDate := time.Now().Format(time.RFC822)
 	post_ids := FromCtx(topCtx, "db.posts.chronological").([]string)
 	posts := FromCtx(topCtx, "db.posts.dictionary").(map[string]Mapper)
 	items := make([]RssItem, 0)
 	for _, id := range post_ids {
 		post := posts[id]
-		item := RssItem{post.GetString("title"), production_url + post.Url(), post["_date"].(time.Time).Format("2006-01-02 03:04:05 +0800"), post["_content"].(*DocContent).Main}
+		item := RssItem{post.GetString("title"), production_url_base + post.Url(), post["_date"].(time.Time).Format("2006-01-02 03:04:05 +0800"), post["_content"].(*DocContent).Main}
 		items = append(items, item)
 	}
 	rss := &Rss{"2.0", &RssChannel{title, production_url, pubDate, items}}
@@ -74,9 +77,9 @@ func (*RssPlugin) Exec(topCtx mustache.Context) {
 		return
 	}
 	// FUCK!! 官方的xml库极其弱智,无法为struct指定名字
-	f.WriteString(`<?xml version="1.0"?>` + "\n" + `<rss version="2.0">`)
+	f.WriteString(`<?xml version="1.0"  encoding="UTF-8"?>` + "\n" + `<rss version="2.0">`)
 	str := string(data)
-	f.Write([]byte(str[len(`<rss version="2.0">`)+1 : len(str)-len("</rss>")]))
+	f.Write([]byte(str[len(`<rss version="2.0">`)+1: len(str)-len("</rss>")]))
 	f.WriteString("</rss>")
 	f.Sync()
 	return
@@ -104,6 +107,7 @@ func (SitemapPlugin) Exec(topCtx mustache.Context) {
 	f.WriteString("\n")
 
 	production_url := FromCtx(topCtx, "site.config.production_url").(string)
+	production_url_base := FromCtx(topCtx, "site.config.production_url_base").(string)
 
 	f.WriteString("\t<url>\n")
 	f.WriteString("\t\t<loc>")
@@ -117,10 +121,11 @@ func (SitemapPlugin) Exec(topCtx mustache.Context) {
 		f.WriteString("\t<url>\n")
 		post := posts[id]
 		f.WriteString("\t\t<loc>")
-		xml.Escape(f, []byte(production_url))
+		xml.Escape(f, []byte(production_url_base))
 		xml.Escape(f, []byte(post.Url()))
 		f.WriteString("</loc>\n")
-		f.WriteString(fmt.Sprintf("\t\t<lastmod>%s</lastmod>\n", post["date"])) // 是否应该抹除呢? 考虑中
+		f.WriteString(fmt.Sprintf("\t\t<lastmod>%s</lastmod>\n",
+			formatSitemapDate(post["date"].(string), post["_date"].(time.Time)))) // 是否应该抹除呢? 考虑中
 		f.WriteString("\t\t<changefreq>weekly</changefreq>\n")
 		f.WriteString("\t</url>\n")
 	}
@@ -128,6 +133,13 @@ func (SitemapPlugin) Exec(topCtx mustache.Context) {
 	f.WriteString(`</urlset>`)
 	f.Sync()
 	// ~_~ 大功告成!
+}
+func formatSitemapDate(date string, _date time.Time) string {
+	if len(date) > len("2006-01-02") {
+		return _date.Format("2006-01-02T15:04:05-07:00")
+	} else {
+		return date
+	}
 }
 
 type JekyllOff struct{}

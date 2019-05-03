@@ -1,4 +1,5 @@
 ## Table of Contents
+* [Sites using gor](#sites-using-gor)
 * [English Introduction](#english-introduction)
     * [Installation](#installation)
     * [Quick Start](#quick-start)
@@ -6,7 +7,52 @@
     * [安装](#installation-安装)
     * [快速入门](#quick-start-快速入门)
 * [Copyright and License](#copyright-and-license)
-* [Sites using gor](#sites-using-gor)
+
+
+Sites using gor
+-----------------------
+正在使用Gor的博客
+-----------------------
+
+[When Go meets Raspberry Pi](http://hugozhu.myalert.info/)
+
+[RaymondChou's Blog](http://ledbk.com/)
+
+[visualfc's blog](http://visualfc.github.com/)
+
+[wendal随笔](http://wendal.net)
+
+[一个热爱木工的软件工程师](http://iwood.co.nr)
+
+[AmicusLuyang](http://imzly.me/)
+
+[Dray's Home](http://gor.idc.wf/)
+
+[努力加贝](http://www.nljb.net)
+
+[腾达格尔的博客](http://www.best-apps-now.com/)
+
+[阿泉来咧 赵金泉的个人网站](http://alair.cn)
+
+[风笑痴](http://lunny.info)
+
+[Nareix](http://nareix.me/)
+
+[Wchin](http://wchin.cn/)
+
+[王浩的小课桌](http://sakyawang.github.io/)
+
+[leonardyp](http://leonardyp.github.io/)
+
+[Forks 的代码工坊](http://blog.503web.com/)
+
+[Linux使用实例](http://linuxuc.com)
+
+[树莓派来咧](http://raspi.in)
+
+If you are also using gor, please don't hesitate to tell me by email or open an issue.
+如果也在使用,欢迎email或者开个issue告诉我们哦
+
 
 # English Introduction
 
@@ -185,28 +231,6 @@ To install:
 Copyright and License
 ----------------------
 
-This project is licensed under the BSD license.
+This project is licensed under the [BSD 3 Clause License](https://spdx.org/licenses/BSD-3-Clause.html).
 
 Copyright (C) 2013, by WendalChen wendal1985@gmail.com.
-
-Sites using gor
------------------------
-正在使用Gor的博客
------------------------
-
-[When Go meets Raspberry Pi](http://hugozhu.myalert.info/)
-
-[RaymondChou's Blog](http://ledbk.com/)
-
-[visualfc's blog](http://visualfc.github.com/)
-
-[wendal随笔](http://wendal.net)
-
-[一个热爱木工的软件工程师](http://iwood.co.nr)
-
-[AmicusLuyang](http://imzly.me/)
-
-[Dray's Home](http://zh-w.info/)
-
-If you are also using gor, please don't hesitate to tell me by email or open an issue.
-如果也在使用,欢迎email或者开个issue告诉我们哦

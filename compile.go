@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/wendal/errors"
-	"github.com/wendal/mustache"
+"github.com/wendal/errors"
+"github.com/wendal/mustache"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,6 +13,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+)
+
+var (
+	HTML_EXT = ""
 )
 
 // 编译整个网站
@@ -24,7 +28,7 @@ func Compile() error {
 
 	var layouts map[string]Mapper
 
-	payload, err := BuildPlayload("./") // payload,核心上下文的主要部分,不可变
+	payload, err := BuildPayload("./") // payload,核心上下文的主要部分,不可变
 	if err != nil {
 		log.Println("Build PayLoad FAIL!!")
 		return err
@@ -309,6 +313,10 @@ func CtxHelpers(payload Mapper, ctxHelper map[string]func(interface{}) interface
 		_pages := make([]Mapper, 0)
 		for _, id := range ids {
 			p := pages[id.(string)]
+			if p == nil {
+				log.Println("what?! no such page " + id.(string))
+				continue
+			}
 			if current_page_id != nil {
 				p["is_active_page"] = id == current_page_id.(string)
 				//log.Println("is_active_page", id == current_page_id.(string))
@@ -422,6 +430,9 @@ func WriteTo(url string, content string) {
 
 	dstPath := "compiled" + url
 	os.MkdirAll(filepath.Dir(dstPath), os.ModePerm)
+	if HTML_EXT != "" {
+		content += HTML_EXT
+	}
 	ioutil.WriteFile(dstPath, []byte(content), os.ModePerm)
 }
 
@@ -432,6 +443,7 @@ func PrapareAssets(theme string, layoutName string, topCtx mustache.Context) str
 	//theme_media_path := urls["theme_media"]
 	theme_javascripts_path := urls["theme_javascripts"]
 	theme_stylesheets_path := urls["theme_stylesheets"]
+	base_path := urls["base_path"]
 
 	assets := make([]string, 0)
 
@@ -456,7 +468,7 @@ func PrapareAssets(theme string, layoutName string, topCtx mustache.Context) str
 				if strings.HasPrefix(stylesheet, "http://") || strings.HasPrefix(stylesheet, "https:") {
 					assets = append(assets, fmt.Sprintf("<link href=\"%s\" type=\"text/css\" rel=\"stylesheet\" media=\"all\">", stylesheet))
 				} else {
-					assets = append(assets, fmt.Sprintf("<link href=\"%s/%s\" type=\"text/css\" rel=\"stylesheet\" media=\"all\">", "/assets/" + theme + "/widgets", stylesheet))
+					assets = append(assets, fmt.Sprintf("<link href=\"%s/%s\" type=\"text/css\" rel=\"stylesheet\" media=\"all\">", base_path+"assets/"+theme+"/widgets", stylesheet))
 				}
 			}
 		}
@@ -484,7 +496,7 @@ func PrapareAssets(theme string, layoutName string, topCtx mustache.Context) str
 				if strings.HasPrefix(javascript, "http://") || strings.HasPrefix(javascript, "https:") {
 					assets = append(assets, fmt.Sprintf("<script src=\"%s\"></script>", javascript))
 				} else {
-					assets = append(assets, fmt.Sprintf("<script src=\"%s/%s\"> </script>", "/assets/" + theme + "/widgets", javascript))
+					assets = append(assets, fmt.Sprintf("<script src=\"%s/%s\"> </script>", "/assets/"+theme+"/widgets", javascript))
 				}
 			}
 		}
