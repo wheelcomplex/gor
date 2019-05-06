@@ -43,7 +43,7 @@ var (
 
 func init() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
-	log.Println("gor ver (DavidMortals) " + VER)
+	log.Println("gor ver " + VER)
 }
 
 func main() {

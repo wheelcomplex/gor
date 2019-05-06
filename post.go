@@ -146,7 +146,7 @@ func postPath(title string) (path string) {
 		log.Println("")
 		log.Fatalf("Invalid title (reserved): %s\n", title)
 	}
-	for val, := range reservedChars {
+	for val := range reservedChars {
 		title = strings.Replace(title, val, "-", -1)
 	}
 	path = "posts/" + time.Now().Format("2006-01-02") + "-" + title + ".md"
