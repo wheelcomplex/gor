@@ -3,7 +3,7 @@ package gor
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/wendal/goyaml2"
+	"github.com/wheelcomplex/goyaml2"
 	"io"
 	"io/ioutil"
 	"log"

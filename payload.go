@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wendal/mustache"
+	"github.com/wheelcomplex/mustache"
 )
 
 var (

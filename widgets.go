@@ -2,8 +2,8 @@
 
 import (
 	"fmt"
-	"github.com/wendal/errors"
-	"github.com/wendal/mustache"
+	"github.com/wheelcomplex/errors"
+	"github.com/wheelcomplex/mustache"
 	"io/ioutil"
 	"log"
 	"os"

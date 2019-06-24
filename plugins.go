@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/wendal/mustache"
+	"github.com/wheelcomplex/mustache"
 )
 
 // 全局插件列表
