@@ -3,11 +3,12 @@ package gor
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/wheelcomplex/goyaml2"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/wheelcomplex/goyaml2"
 )
 
 // 读取配置文件()
@@ -59,7 +60,7 @@ func ReadYmlReader(r io.Reader) (cnf map[string]interface{}, err error) {
 		return
 	}
 	if _map == nil {
-		log.Println("Goyaml2 output nil? Pls report bug\n" + string(buf))
+		log.Fatalln("Goyaml2 output nil? Pls report bug\n" + string(buf))
 	}
 	cnf, ok := _map.(map[string]interface{})
 	if !ok {

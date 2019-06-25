@@ -60,6 +60,7 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 
 	// Check site config!
 	themeName := cnf.String("theme")
+	// TODO: embedded theme
 	if themeName == "" { //必须有theme的设置
 		err = errors.New("Miss theme config!")
 		return
@@ -138,6 +139,9 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 	if cnf_posts.GetInt("summary_lines") < 5 {
 		cnf_posts["summary_lines"] = 20
 	}
+	if cnf_posts.GetInt("summary_images") < 1 {
+		cnf_posts["summary_images"] = 1
+	}
 	if cnf_posts.GetInt("latest") < 5 {
 		cnf_posts["latest"] = 10
 	}
@@ -198,11 +202,11 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 		page_url := ""
 		switch {
 		case strings.HasSuffix(page_id, "index.html"):
-			page_url = page_id[0: len(page_id)-len("index.html")]
+			page_url = page_id[0 : len(page_id)-len("index.html")]
 		case strings.HasSuffix(page_id, "index.md"):
-			page_url = page_id[0: len(page_id)-len("index.md")]
+			page_url = page_id[0 : len(page_id)-len("index.md")]
 		default:
-			page_url = page_id[0: len(page_id)-len(filepath.Ext(page_id))]
+			page_url = page_id[0 : len(page_id)-len(filepath.Ext(page_id))]
 			if page["title"] == nil && !strings.HasSuffix(page_url, "/") {
 				page["title"] = strings.Title(filepath.Base(page_url))
 			}
@@ -331,6 +335,7 @@ func LoadPages(root string, exclude string) (pages map[string]Mapper, err error)
 			return
 		}
 	}
+	pagesCount := 0
 	err = filepath.Walk(root+"pages/", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -346,8 +351,11 @@ func LoadPages(root string, exclude string) (pages map[string]Mapper, err error)
 			return err
 		}
 		pages[page.Id()] = page
+		pagesCount++
+		log.Printf("Load Page#%d (%s) : %s\n", pagesCount, page.Id(), path)
 		return nil
 	})
+	log.Printf("Total Pages: %d\n", pagesCount)
 	return
 }
 
@@ -654,7 +662,7 @@ func LoadLayouts(root string, theme string) map[string]Mapper {
 			}
 			layout["_content"] = &DocContent{"", "", tpl}
 		}
-		layoutName := filename[0: len(filename)-len(filepath.Ext(filename))]
+		layoutName := filename[0 : len(filename)-len(filepath.Ext(filename))]
 		layouts[layoutName] = layout
 		log.Println("Load Layout : " + layoutName)
 		return nil

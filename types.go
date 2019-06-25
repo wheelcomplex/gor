@@ -2,9 +2,10 @@ package gor
 
 import (
 	"fmt"
-	"github.com/wheelcomplex/mustache"
 	"log"
 	"time"
+
+	"github.com/wheelcomplex/mustache"
 )
 
 // 最重要的封装类之一
@@ -191,11 +192,12 @@ type TopConfig struct {
 }
 
 type PostConfig struct {
-	Permalink     string
-	Summary_lines int
-	Latest        int
-	Layout        string
-	Exclude       string
+	Permalink      string
+	Summary_lines  int
+	Summary_images int
+	Latest         int
+	Layout         string
+	Exclude        string
 }
 
 type PageConfig struct {

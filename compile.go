@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-"github.com/wheelcomplex/errors"
-"github.com/wheelcomplex/mustache"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,6 +11,9 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/wheelcomplex/errors"
+	"github.com/wheelcomplex/mustache"
 )
 
 var (
@@ -91,7 +92,7 @@ func Compile() error {
 		dynamicMapper["assets"] = PrapareAssets(themeName, page.Layout(), topCtx) + widget_assets
 		widgetCtx := PrapareWidgets(widgets, page, topCtx)
 		ctx = mustache.MakeContexts(page, dynamicMapper, topCtx, widgetCtx)
-		//log.Println(">>", ctx.Dir(), topCtx.Dir())
+		log.Println(">>", ctx.Dir(), topCtx.Dir())
 		_tmp, err := PrapreMainContent(id, docCont.Source, ctx)
 		if err != nil {
 			return err
@@ -146,21 +147,22 @@ func Compile() error {
 }
 
 func RenderInLayout(content string, layoutName string, layouts map[string]Mapper, ctx mustache.Context) (string, error) {
-	//log.Println("Render Layout", layoutName, ">>", content, "<<END")
+	log.Println("Render Layout", layoutName, ">>", content, "<<END")
 	ctx2 := make(map[string]string)
 	ctx2["content"] = content
 	layout := layouts[layoutName]
 	if layout == nil {
 		return "", errors.New("Not such Layout : " + layoutName)
 	}
-	//log.Println(layoutName, layout["_content"])
+	log.Println(layoutName, layout["_content"])
 	buf := &bytes.Buffer{}
 	err := layout["_content"].(*DocContent).TPL.Render(mustache.MakeContexts(ctx2, ctx), buf)
 	if err != nil {
 		return content, err
 	}
 	if layout.Layout() != "" {
-		return RenderInLayout(buf.String(), layout.Layout(), layouts, ctx)
+		str, err := RenderInLayout(buf.String(), layout.Layout(), layouts, ctx)
+		return str, err
 	}
 	return buf.String(), nil
 }
@@ -171,6 +173,7 @@ func BaiscHelpers(payload Mapper, helpers map[string]mustache.SectionRenderFunc,
 	latest_size := int(FromCtx(topCtx, "site.config.posts.latest").(int64))
 	dict := FromCtx(topCtx, "db.posts.dictionary").(map[string]Mapper)
 	summary_lines := int(FromCtx(topCtx, "site.config.posts.summary_lines").(int64))
+	summary_images := int(FromCtx(topCtx, "site.config.posts.summary_images").(int64))
 	latest_posts := make([]Mapper, 0)
 	for _, id := range chronological {
 		latest_posts = append(latest_posts, dict[id])
@@ -186,8 +189,8 @@ func BaiscHelpers(payload Mapper, helpers map[string]mustache.SectionRenderFunc,
 
 		for _, post := range latest_posts {
 			top := map[string]interface{}{}
-			top["summary"] = MakeSummary(post, summary_lines, topCtx)
-			//log.Println(top["summary"])
+			top["summary"] = MakeSummary(post, summary_lines, summary_images, topCtx)
+			log.Println(top["summary"])
 			top["content"] = post["_content"].(*DocContent).Main
 			for _, node := range nodes {
 				err = node.Render(mustache.MakeContexts(post, top, ctx), w)
@@ -565,13 +568,14 @@ func copyDir(src string, target string) error {
 	return nil
 }
 
-func MakeSummary(post Mapper, lines int, topCtx mustache.Context) string {
+func MakeSummary(post Mapper, lines, images int, topCtx mustache.Context) string {
 	content := post["_content"].(*DocContent).Source
 	r := bufio.NewReader(bytes.NewBufferString(content))
 	dst := ""
 	readUntil := ""
 	for lines > 0 {
 		line, _ := r.ReadString('\n')
+		log.Printf("summary line#%d: %s\n<<END\n", lines, line)
 		dst += line
 		lines--
 		if strings.Trim(line, "\r\n\t ") == "```" {
@@ -581,10 +585,29 @@ func MakeSummary(post Mapper, lines int, topCtx mustache.Context) string {
 				readUntil = ""
 			}
 		}
-		if lines == 0 {
+		// remove space between < and img, eg,. "<    img src=xxxx></img>"
+		if strings.Index(strings.ReplaceAll(line, " ", ""), "<img") >= 0 {
+			log.Printf("summary IMG#%d line#%d: %s\n<<END\n", images, lines+1, line)
+			images--
+			if images == 0 {
+				// not more summary
+				lines = 0
+				if readUntil == "" {
+					readUntil = ">"
+				}
+			}
+		}
+		if lines == 0 && readUntil != "" {
 			var err error
-			for readUntil != strings.Trim(line, "\r\n\t ") {
+			for {
+				if (readUntil != ">" || images != 0) && readUntil == strings.Trim(line, "\r\n\t ") {
+					break
+				} else if strings.Index(strings.ReplaceAll(line, " ", ""), ">") >= 0 {
+					break
+				}
+
 				line, err = r.ReadString('\n')
+				log.Printf("summary readUntil(%x): %s\n<<END\n", readUntil, line)
 				dst += line
 				if err != nil {
 					break
@@ -608,6 +631,7 @@ func MakeSummary(post Mapper, lines int, topCtx mustache.Context) string {
 func renderPaginator(pgCnf Mapper, layouts map[string]Mapper, topCtx mustache.Context, widgets []Widget) {
 	base_path := FromCtx(topCtx, "urls.base_path").(string)
 	summary_lines := int(FromCtx(topCtx, "site.config.posts.summary_lines").(int64))
+	summary_images := int(FromCtx(topCtx, "site.config.posts.summary_images").(int64))
 	per_page := pgCnf.Int("per_page")
 	if per_page < 2 {
 		per_page = 2
@@ -663,7 +687,7 @@ func renderPaginator(pgCnf Mapper, layouts map[string]Mapper, topCtx mustache.Co
 			one_page = one_page[0:0]
 		}
 		post := dictionary[post_id]
-		post["summary"] = MakeSummary(post, summary_lines, topCtx)
+		post["summary"] = MakeSummary(post, summary_lines, summary_images, topCtx)
 		one_page = append(one_page, post)
 	}
 	if len(one_page) > 0 {

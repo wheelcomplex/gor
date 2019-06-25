@@ -134,7 +134,7 @@ Local preview
 gor also comes with a built-in development server that will allow you to preview what the generated site will look like in your browser locally.
 
     gor http
-    # Open your favorite web browser and visit: http://127.0.0.1:8080
+    # Open your favorite web browser and visit: http://127.0.0.1:8066
 
 Deployment
 -----
@@ -220,7 +220,7 @@ To install:
 -------
 
     gor http
-    # 打开你的浏览器，访问 http://127.0.0.1:8080
+    # 打开你的浏览器，访问 http://127.0.0.1:8066
 
 部署
 -----

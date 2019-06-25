@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/howeyc/fsnotify"
-	"github.com/wheelcomplex/gor"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"runtime/pprof"
+
+	"github.com/howeyc/fsnotify"
+	"github.com/wheelcomplex/gor"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 )
 
 var (
-	http_addr   = flag.String("http", ":8080", "Http addr for Preview or Server")
+	http_addr   = flag.String("http", ":8066", "Http addr for Preview or Server")
 	args        []string
 	_compileVer = 0
 	_watch_js   = `
@@ -140,7 +141,7 @@ const INIT_ZIP="`
 }
 
 func _http() {
-	log.Println("Listen at ", *http_addr)
+	log.Printf("Listen at http://127.0.0.1%s\n", *http_addr)
 	sm := http.NewServeMux()
 	sm.HandleFunc("/_api/f5", f5)
 	sm.Handle("/", http.FileServer(http.Dir("compiled")))

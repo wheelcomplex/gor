@@ -129,6 +129,9 @@ func (webSite *WebSite) FixPostPageConfigs() {
 	if postsCnf.Summary_lines < 5 {
 		postsCnf.Summary_lines = 20
 	}
+	if postsCnf.Summary_images < 1 {
+		postsCnf.Summary_images = 1
+	}
 	if postsCnf.Latest < 5 {
 		postsCnf.Latest = 5
 	}
