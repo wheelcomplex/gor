@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -173,7 +174,15 @@ func BaiscHelpers(payload Mapper, helpers map[string]mustache.SectionRenderFunc,
 	latest_size := int(FromCtx(topCtx, "site.config.posts.latest").(int64))
 	dict := FromCtx(topCtx, "db.posts.dictionary").(map[string]Mapper)
 	summary_lines := int(FromCtx(topCtx, "site.config.posts.summary_lines").(int64))
-	summary_images := int(FromCtx(topCtx, "site.config.posts.summary_images").(int64))
+
+	var summary_images int
+	// log.Printf("os %s, arch %s\n", runtime.GOOS, runtime.GOARCH)
+
+	if runtime.GOOS == "windows" {
+		summary_images = int(FromCtx(topCtx, "site.config.posts.summary_images").(int))
+	} else {
+		summary_images = int(FromCtx(topCtx, "site.config.posts.summary_images").(int64))
+	}
 	latest_posts := make([]Mapper, 0)
 	for _, id := range chronological {
 		latest_posts = append(latest_posts, dict[id])
