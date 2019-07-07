@@ -42,7 +42,7 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 	var cnf Mapper
 	var site Mapper
 
-	//-----------------------------------
+	//
 	cnf, err = ReadYml(root + CONFIG_YAML)
 	if err != nil {
 		log.Println("Fail to read ", root+CONFIG_YAML, err)
@@ -96,7 +96,6 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 	}
 
 	// 读取theme的配置
-	//---------------------------------
 	themeCnf, err := ReadYml(fmt.Sprintf("%s/themes/%s/theme.yml", root, themeName))
 	if err != nil {
 		log.Println("No such theme ?", themeName, err)
@@ -105,7 +104,6 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 	payload["theme"] = themeCnf
 
 	// 设置基础URL
-	//-------------------------------
 	urls := make(map[string]string)
 	urls["media"] = basePath + "assets/media"
 	urls["theme"] = basePath + "assets/" + themeName
@@ -124,7 +122,6 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 
 	payload["urls"] = urls
 
-	//---------------------------------
 	// 检查非必填,但必须存在的配置信息, 如果没有就自动补齐
 	var cnf_posts Mapper
 	if cnf["posts"] == nil {
@@ -169,7 +166,7 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 		cnf_pages["permalink"] = "pretty"
 	}
 
-	//---------------------------------
+	//
 	post_layout_default := cnf_posts.Layout()
 	page_layout_default := cnf_pages.Layout()
 
@@ -177,7 +174,6 @@ func BuildPayload(root string) (payload map[string]interface{}, err error) {
 	page_permalink_default := cnf_pages.Permalink()
 
 	// 为Page和Post补齐layout和permalink
-	//---------------------------------
 
 	db := make(map[string]interface{})
 	payload["db"] = db
@@ -403,6 +399,7 @@ func LoadPosts(root string, exclude string) (posts map[string]Mapper, err error)
 
 // 载入特定的Post
 func LoadPost(root string, path string, fname string) (ctx Mapper, err error) {
+	log.Printf("LoadPost: %s\n", path)
 	ctx, err = ReadMuPage(path)
 	if err != nil {
 		return
@@ -443,7 +440,10 @@ func LoadPost(root string, path string, fname string) (ctx Mapper, err error) {
 	return
 }
 
-// 读取包含元数据的文件,返回ctx(包含文本)
+// lines limits for search summary
+var summaryMaxlines = 50
+
+// ReadMuPage 读取包含元数据的文件,返回ctx(包含文本)
 func ReadMuPage(path string) (ctx map[string]interface{}, err error) {
 	//log.Println("Read", path)
 	err = nil
@@ -477,15 +477,64 @@ func ReadMuPage(path string) (ctx map[string]interface{}, err error) {
 			break
 		}
 		buf.WriteString(line)
+		if err == io.EOF {
+			break
+		}
 	}
 	buf = bytes.NewBuffer(buf.Bytes())
 
+	// log.Printf("read file %s, meta: %s<<END\n", path, buf.String())
 	ctx, err = ReadYmlReader(buf)
 	if err != nil {
 		err = errors.New(path + " --> " + err.Error())
 		return
 	}
 
+	// read summary, seperated by ### --- ###
+	buf.Reset()
+
+	headBuf := bytes.NewBuffer(nil)
+
+	var count = 0
+	var readCount = 0
+	for {
+		readCount++
+		if readCount == summaryMaxlines {
+			// log.Printf("read file %s: %s\n", path, "SUMMARY NO-FOUND")
+			break
+		}
+		line, err = br.ReadString('\n')
+		if err != nil {
+			if err != io.EOF {
+				return
+			}
+		}
+		// save head
+		headBuf.WriteString(line)
+
+		if strings.Count(line, "###") == 1 {
+			count++
+		} else if count == 1 {
+			// save summary
+			buf.WriteString(line)
+		}
+		if err == io.EOF {
+			break
+		}
+		if count == 2 {
+			break
+		}
+	}
+	ctx["_summary"] = ""
+	if count == 2 {
+		summary := buf.String()
+		ctx["_summary"] = summary
+		// log.Printf("read file %s:\nSUMMARY: \n%s<<END\n", path, summary)
+	} else {
+		br = bufio.NewReader(io.MultiReader(headBuf, br))
+	}
+
+	// read the rest
 	d, err := ioutil.ReadAll(br)
 	if err != nil {
 		err = errors.New(path + " --> " + err.Error())

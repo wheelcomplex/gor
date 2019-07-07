@@ -5,7 +5,7 @@ import (
 	// "github.com/knieriem/markdown"
 	// . "github.com/russross/blackfriday"
 	// . "github.com/wendal/blackfriday"
-	. "github.com/wheelcomplex/blackfriday"
+	. "github.com/wheelcomplex/gor-blackfriday"
 	"log"
 	"regexp"
 	"strings"

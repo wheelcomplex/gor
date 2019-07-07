@@ -196,7 +196,7 @@ To install:
 打开站点根目录下的 config.yml 文件
 
 1. `production_url`：为你的网站地址，例如`http://wendal.net`最后面不需要加入`/`，生成`rss.xml`等文件时会用到
-2. `summary_lines`：首页的文章摘要的长度,按你喜欢的呗
+2. `summary_lines`：首页的文章摘要的长度,按你喜欢的呗, `summary_images`：首页的文章摘要允许的图片数量； 在`---`对之后使用 `###`对可为文章自定义摘要（同时不受summary_lines/summary_images限制）
 3. `latest`：首页显示多少文章
 4. `imgs`：自动插入`<img>`的相关配置
    * `imgtag`：要插入的 <img> 标签的基本格式，`%s` 部分会被自动替换为 `urlperfix/post_name/img_file_name` 的格式
