@@ -181,7 +181,7 @@ func BaiscHelpers(payload Mapper, helpers map[string]mustache.SectionRenderFunc,
 
 	var summary_images int
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 		summary_images = int(FromCtx(topCtx, "site.config.posts.summary_images").(int))
 	} else {
 		summary_images = int(FromCtx(topCtx, "site.config.posts.summary_images").(int64))
