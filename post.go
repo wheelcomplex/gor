@@ -163,7 +163,7 @@ func CreateNewPost(title string) (path string) {
 	_, err := os.Stat(path)
 	if err == nil || !os.IsNotExist(err) {
 		fmt.Printf("Create Post File Error: \n %v\n", err)
-		log.Fatal("Post File Exist?! ", path)
+		log.Fatal("Post File Exist ?: ", path)
 	}
 	err = ioutil.WriteFile(path, []byte(fmt.Sprintf(TPL_NEW_POST, title, time.Now().Format("2006-01-02"))), os.ModePerm)
 	if err != nil {
